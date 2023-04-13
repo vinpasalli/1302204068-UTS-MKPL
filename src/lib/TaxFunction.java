@@ -10,12 +10,8 @@ public class TaxFunction {
             System.err.println("More than 12 month working per year");
         }
         
-        if (numberOfChildren.getValue() > 3) {
-            numberOfChildren = new NumberOfChildren(3);
-        }
-        
         int nonTaxableIncome = NonTaxableIncomeCalculator.calculate(marriageStatus, numberOfChildren);
-        int taxableIncome = ((monthlySalary + otherMonthlyIncome) * numberOfMonthWorking.getValue()) - deductible - nonTaxableIncome;
+        int taxableIncome = calculateTaxableIncome(monthlySalary, otherMonthlyIncome, numberOfMonthWorking, deductible, nonTaxableIncome);
         tax = (int) Math.round(0.05 * taxableIncome);
         
         if (tax < 0) {
@@ -23,6 +19,17 @@ public class TaxFunction {
         } else {
             return tax;
         }
+    }
+    
+    private static int calculateTaxableIncome(int monthlySalary, int otherMonthlyIncome, WorkingMonth numberOfMonthWorking, 
+                                              int deductible, int nonTaxableIncome) {
+        int taxableIncome = ((monthlySalary + otherMonthlyIncome) * numberOfMonthWorking.getValue()) - deductible - nonTaxableIncome;
+        
+        if (taxableIncome < 0) {
+            taxableIncome = 0;
+        }
+        
+        return taxableIncome;
     }
 }
 
@@ -52,9 +59,10 @@ class MarriageStatus {
 
 class NumberOfChildren {
     private int value;
+    private static final int MAX_CHILDREN = 3;
 
     public NumberOfChildren(int value) {
-        this.value = value;
+        this.value = Math.min(value, MAX_CHILDREN);
     }
 
     public int getValue() {
@@ -63,16 +71,21 @@ class NumberOfChildren {
 }
 
 class NonTaxableIncomeCalculator {
+    private static final int BASE_NON_TAXABLE_INCOME = 54000000;
+    private static final int NON_TAXABLE_INCOME_PER_CHILD = 4500000;
+    private static final int NON_TAXABLE_INCOME_FOR_MARRIED = 4500000;
+    
     public static int calculate(MarriageStatus marriageStatus, NumberOfChildren numberOfChildren) {
-        int nonTaxableIncome = 54000000;
+        int nonTaxableIncome = BASE_NON_TAXABLE_INCOME;
         
         if (marriageStatus.isMarried()) {
-            nonTaxableIncome += 4500000;
+            nonTaxableIncome += NON_TAXABLE_INCOME_FOR_MARRIED;
         }
         
-        nonTaxableIncome += numberOfChildren.getValue() * 4500000;
+        nonTaxableIncome += numberOfChildren.getValue() * NON_TAXABLE_INCOME_PER_CHILD;
         
         return nonTaxableIncome;
     }
 }
+
 
